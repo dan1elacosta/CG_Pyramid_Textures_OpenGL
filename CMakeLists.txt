@@ -12,7 +12,7 @@ endif()
 project ("Pyramid_Textures_CG")
 
 # Agregue un origen al ejecutable de este proyecto.
-add_executable (Pyramid_Textures_CG "Pyramid_Textures_CG.cpp" "Pyramid_Textures_CG.h")
+add_executable (Pyramid_Textures_CG "Pyramid_Textures_CG.cpp" "Pyramid_Textures_CG.h" )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Pyramid_Textures_CG PROPERTY CXX_STANDARD 20)

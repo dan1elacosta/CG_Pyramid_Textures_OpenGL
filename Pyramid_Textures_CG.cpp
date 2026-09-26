@@ -7,6 +7,6 @@ using namespace std;
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	cout << "Se Inicializa Ventana con espacio A Fin." << endl;
 	return 0;
 }
