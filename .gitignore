@@ -361,3 +361,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Archivos de compilación de Visual Studio y CMake
+out/
+build/
+.vs/
+*.exe
+*.obj
+*.pdb
+*.user

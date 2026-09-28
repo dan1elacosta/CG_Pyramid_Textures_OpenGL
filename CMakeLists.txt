@@ -1,21 +1,30 @@
-﻿# CMakeList.txt: proyecto de CMake para Pyramid_Textures_CG, incluya el origen y defina
-# la lógica específica del proyecto aquí.
-#
-cmake_minimum_required (VERSION 3.10)
+﻿cmake_minimum_required(VERSION 3.10)
+project(Pyramid_Textures_CG C CXX)
 
-# Habilite Recarga activa para los compiladores de MSVC si se admiten.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project ("Pyramid_Textures_CG")
+# Buscar OpenGL en el sistema
+find_package(OpenGL REQUIRED)
 
-# Agregue un origen al ejecutable de este proyecto.
-add_executable (Pyramid_Textures_CG "Pyramid_Textures_CG.cpp" "Pyramid_Textures_CG.h" )
+# Rutas de inclusión para las cabeceras (GLM, GLAD, GLFW)
+include_directories(
+    libraries/glfw-3.5.1/include
+    libraries/glad/include
+    libraries
+)
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET Pyramid_Textures_CG PROPERTY CXX_STANDARD 20)
-endif()
+# Incluir subdirectorio de GLFW
+add_subdirectory(libraries/glfw-3.5.1)
 
-# TODO: Agregue pruebas y destinos de instalación si es necesario.
+# Código fuente de GLAD
+set(GLAD_SOURCES libraries/glad/src/glad.c)
+
+# Crear el ejecutable leyendo Pyramid_Textures_CG.cpp directamente en la raíz
+add_executable(${PROJECT_NAME} Pyramid_Textures_CG.cpp ${GLAD_SOURCES})
+
+# Enlazar librerías
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    glfw
+    OpenGL::GL
+)
