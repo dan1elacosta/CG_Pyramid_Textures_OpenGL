@@ -157,35 +157,43 @@ int main()
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    // Configuración de envoltura (wrapping) de la textura
+    // Configuración de envoltura
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    // Configuración del filtrado (filtering)
+    // Configuración de filtrado
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // Voltear verticalmente la imagen porque las coordenadas Y de OpenGL empiezan abajo
+    // Voltear verticalmente la imagen
     stbi_set_flip_vertically_on_load(true);
 
     int width, height, nrChannels;
-    // IMPORTANTE: Asegúrate de colocar tu archivo de imagen dentro de la carpeta "textures/"
-    unsigned char* data = stbi_load("textures/madera.jpg", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("textures/TexturasEmojis.jpg", &width, &height, &nrChannels, 0);
 
     if (data)
     {
-        // Detectar si la imagen tiene canal Alfa (PNG) o solo RGB (JPG)
-        GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+        // Fuerza a OpenGL a leer la memoria byte a byte (evita crash en GPUs AMD)
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
+        // Definir el formato de manera segura
+        GLenum format = GL_RGB;
+        if (nrChannels == 1)      format = GL_RED;
+        else if (nrChannels == 3) format = GL_RGB;
+        else if (nrChannels == 4) format = GL_RGBA;
+
+        // Enviar la textura a la VRAM de la GPU
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
-        std::cout << "Textura cargada con exito (" << width << "x" << height << ")\n";
+
+        std::cout << "Textura cargada con exito: " << width << "x" << height << " (Canales: " << nrChannels << ")\n";
     }
     else
     {
-        std::cout << "Error al cargar la textura. Verifica la ruta 'textures/madera.jpg'\n";
+        std::cout << "Error al cargar la textura. Verifica la ruta 'textures/TexturasEmojis.jpg'\n";
     }
-    // Liberar la memoria RAM ocupada por la imagen
+
+    // Liberar la memoria RAM ocupada por la imagen procesada
     stbi_image_free(data);
 
     // Obtener ubicaciones uniformes en la GPU

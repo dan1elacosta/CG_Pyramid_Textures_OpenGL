@@ -28,3 +28,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     glfw
     OpenGL::GL
 )
+
+# Copiar la carpeta de texturas al directorio donde se genera el ejecutable
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/textures 
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
