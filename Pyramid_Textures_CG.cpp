@@ -1,5 +1,4 @@
-﻿//LLAMANDO A BIBLIOTECAS 
-// ---------------------------------------------------------------
+﻿//LLAMANDO A BIBLIOTECAS // ---------------------------------------------------------------
 // 1. GLAD: Carga los punteros a las funciones de OpenGL según el driver de la GPU.
 // DEBE ir antes que GLFW.
 #include <glad/glad.h>
@@ -19,8 +18,11 @@
 // 5. GLM Type Ptr: Convierte las matrices de C++ en punteros compatibles con la GPU.
 #include <glm/gtc/type_ptr.hpp>
 
-// Callback para ajustar la resolución de dibujado cuando la ventana cambia de tamaño
+// 6. STB Image: Carga imágenes desde disco a memoria para usarlas como texturas en OpenGL.
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
+// Callback para ajustar la resolución de dibujado cuando la ventana cambia de tamaño
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -45,16 +47,20 @@ void main()
 }
 )";
 
-// Fragment Shader: Renderiza temporalmente las coordenadas UV como color
+// Fragment Shader: Aplica la textura usando las coordenadas UV
 const char* fragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColor;
 
 in vec2 TexCoord;
+
+// Sampler2D es el uniform que representa el canal de la textura en la GPU
+uniform sampler2D ourTexture;
+
 void main()
 {
-    // Usamos las coordenadas UV como color para verificar que las caras estan bien mapeadas
-    FragColor = vec4(TexCoord.x, TexCoord.y, 0.5f, 1.0f);
+    // Muestra (samplea) los colores de la textura en las coordenadas UV
+    FragColor = texture(ourTexture, TexCoord);
 }
 )";
 
@@ -66,7 +72,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Piramide 3D con EBO - OpenGL", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Piramide 3D con EBO y Textura - OpenGL", nullptr, nullptr);
     if (!window) { glfwTerminate(); return -1; }
 
     glfwMakeContextCurrent(window);
@@ -144,6 +150,44 @@ int main()
     // Desvincular VAO
     glBindVertexArray(0);
 
+    // ---------------------------------------------------------------------------------
+    // 4. CARGA Y CONFIGURACIÓN DE LA TEXTURA CON STB_IMAGE
+    // ---------------------------------------------------------------------------------
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // Configuración de envoltura (wrapping) de la textura
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // Configuración del filtrado (filtering)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Voltear verticalmente la imagen porque las coordenadas Y de OpenGL empiezan abajo
+    stbi_set_flip_vertically_on_load(true);
+
+    int width, height, nrChannels;
+    // IMPORTANTE: Asegúrate de colocar tu archivo de imagen dentro de la carpeta "textures/"
+    unsigned char* data = stbi_load("textures/madera.jpg", &width, &height, &nrChannels, 0);
+
+    if (data)
+    {
+        // Detectar si la imagen tiene canal Alfa (PNG) o solo RGB (JPG)
+        GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        std::cout << "Textura cargada con exito (" << width << "x" << height << ")\n";
+    }
+    else
+    {
+        std::cout << "Error al cargar la textura. Verifica la ruta 'textures/madera.jpg'\n";
+    }
+    // Liberar la memoria RAM ocupada por la imagen
+    stbi_image_free(data);
+
     // Obtener ubicaciones uniformes en la GPU
     GLint modelLoc = glGetUniformLocation(shaderProgram, "model");
     GLint viewLoc = glGetUniformLocation(shaderProgram, "view");
@@ -155,6 +199,10 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
+
+        // Activar y vincular la textura antes de dibujar
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
 
         // Cámara temporal que gira alrededor para inspeccionar la pirámide
         float timeValue = (float)glfwGetTime();
