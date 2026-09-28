@@ -1,4 +1,6 @@
-﻿// 1. GLAD: Carga los punteros a las funciones de OpenGL según el driver de la GPU.
+﻿//LLAMANDO A BIBLIOTECAS 
+// ---------------------------------------------------------------
+// 1. GLAD: Carga los punteros a las funciones de OpenGL según el driver de la GPU.
 // DEBE ir antes que GLFW.
 #include <glad/glad.h>
 
@@ -18,6 +20,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // Callback para ajustar la resolución de dibujado cuando la ventana cambia de tamaño
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -48,7 +51,6 @@ const char* fragmentShaderSource = R"(
 out vec4 FragColor;
 
 in vec2 TexCoord;
-
 void main()
 {
     // Usamos las coordenadas UV como color para verificar que las caras estan bien mapeadas
