@@ -2,27 +2,19 @@
 // 1. GLAD: Carga los punteros a las funciones de OpenGL según el driver de la GPU.
 // DEBE ir antes que GLFW.
 #include <glad/glad.h>
-
 // 2. GLFW: Administra la ventana del sistema operativo, contexto de OpenGL y entradas (teclado/mouse).
 #include <GLFW/glfw3.h>
-
 // Biblioteca estándar de C++ para salida de errores e información en consola.
 #include <iostream>
-
 // 3. GLM: Biblioteca matemática para vectores (vec3, vec4) y matrices (mat4).
 #include <glm/glm.hpp>
-
 // 4. GLM Matrix Transform: Funciones para crear matrices de Traslación, Rotación, Escalado, Vista y Proyección.
 #include <glm/gtc/matrix_transform.hpp>
-
 // 5. GLM Type Ptr: Convierte las matrices de C++ en punteros compatibles con la GPU.
 #include <glm/gtc/type_ptr.hpp>
-
 // 6. STB Image: Carga imágenes desde disco a memoria para usarlas como texturas en OpenGL.
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
-// Callback para ajustar la resolución de dibujado cuando la ventana cambia de tamaño
 
 // Variables globales para el control de la cámara
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.5f, 3.0f); // Posición inicial de la cámara
@@ -58,8 +50,7 @@ void processInput(GLFWwindow* window)
 }
 
 // Shaders
-const char* vertexShaderSource = R"(
-#version 330 core
+const char* vertexShaderSource = R"(#version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
 
@@ -73,11 +64,9 @@ void main()
 {
     gl_Position = projection * view * model * vec4(aPos, 1.0);
     TexCoord = aTexCoord;
-}
-)";
+})";
 
-const char* fragmentShaderSource = R"(
-#version 330 core
+const char* fragmentShaderSource = R"(#version 330 core
 out vec4 FragColor;
 
 in vec2 TexCoord;
@@ -87,8 +76,7 @@ uniform sampler2D ourTexture;
 void main()
 {
     FragColor = texture(ourTexture, TexCoord);
-}
-)";
+})";
 
 int main()
 {
@@ -98,6 +86,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	//Crea la ventana con el título "Piramide 3D - Camara Interactiva (Flechas)" y tamaño 800x600
     GLFWwindow* window = glfwCreateWindow(800, 600, "Piramide 3D - Camara Interactiva (Flechas)", nullptr, nullptr);
     if (!window) { glfwTerminate(); return -1; }
 
@@ -181,7 +170,6 @@ int main()
     int width, height, nrChannels;
     unsigned char* data = stbi_load("textures/TexturasEmojis.jpg", &width, &height, &nrChannels, 0);
 
-
     if (data)
     {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -201,13 +189,16 @@ int main()
     }
 
     //------------------------------------------------
+	//Subida de las variables uniformes de las matrices al shader
+    //----------------------------------------
 
     stbi_image_free(data);
 
     GLint modelLoc = glGetUniformLocation(shaderProgram, "model");
     GLint viewLoc = glGetUniformLocation(shaderProgram, "view");
     GLint projLoc = glGetUniformLocation(shaderProgram, "projection");
-
+    //---------------------------------------------------------------- 
+    
     // Bucle principal de renderizado
     while (!glfwWindowShouldClose(window))
     {
@@ -230,6 +221,12 @@ int main()
         // MATRICES MVP DINÁMICAS
         glm::mat4 model = glm::mat4(1.0f);
 
+        //---------------------------------------
+		//ROTACION DE LA PIRÁMIDE
+        // Rotación continua de la pirámide sobre el eje Y según el tiempo transcurrido
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        //---------------------------------------
+      
         // Matriz View creada con la posición interactiva de la cámara
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
