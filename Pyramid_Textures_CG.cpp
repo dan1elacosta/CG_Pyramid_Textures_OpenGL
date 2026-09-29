@@ -165,6 +165,8 @@ int main()
     glBindVertexArray(0);
 
     // Carga de Textura
+    //----------------------------------------------
+
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -178,6 +180,7 @@ int main()
 
     int width, height, nrChannels;
     unsigned char* data = stbi_load("textures/TexturasEmojis.jpg", &width, &height, &nrChannels, 0);
+
 
     if (data)
     {
@@ -196,6 +199,9 @@ int main()
     {
         std::cout << "Error al cargar la textura.\n";
     }
+
+    //------------------------------------------------
+
     stbi_image_free(data);
 
     GLint modelLoc = glGetUniformLocation(shaderProgram, "model");
